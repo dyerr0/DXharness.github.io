@@ -3,33 +3,33 @@
  * @autor: funnyzak
  * @email: silenceace@gmail.com
  * @Usage:
-  <div id="loading-screen">
-    <h3 id="loading-text">Loading...</h3>
-    <div id="progress-bar"><div id="progress"></div></div>
-  </div>
-  <div id="container"></div>
-
-  const config = {
-    containerId: 'container',
-    loadingScreenId: 'loading-screen',
-    modelPath: '../../assets/models/glb/gold_coin.glb',
-    autoRotate: true,
-    rotationSpeed: 0.002,
-    cameraPosition: { x: 0, y: 0, z: 3 },
-    modelRotation: { x: 0, y: 0, z: 0 },
-    lightIntensity: 0.8,
-    ambientLightIntensity: 0.7,
-    controls: {
-      enableDamping: true,
-      dampingFactor: 0.05,
-      screenSpacePanning: false,
-      minDistance: 1,
-      maxDistance: 10,
-      maxPolarAngle: Math.PI / 2,
-    },
-  };
-
-  GLBModel.init(config);
+ *  <div id="loading-screen">
+ *    <h3 id="loading-text">Loading...</h3>
+ *    <div id="progress-bar"><div id="progress"></div></div>
+ *  </div>
+ *  <div id="container"></div>
+ *
+ *  const config = {
+ *    containerId: 'container',
+ *    loadingScreenId: 'loading-screen',
+ *    modelPath: '../../assets/models/glb/gold_coin.glb',
+ *    autoRotate: true,
+ *    rotationSpeed: 0.002,
+ *    cameraPosition: { x: 0, y: 0, z: 3 },
+ *    modelRotation: { x: 0, y: 0, z: 0 },
+ *    lightIntensity: 0.8,
+ *    ambientLightIntensity: 0.7,
+ *    controls: {
+ *      enableDamping: true,
+ *      dampingFactor: 0.05,
+ *      screenSpacePanning: false,
+ *      minDistance: 1,
+ *      maxDistance: 10,
+ *      maxPolarAngle: Math.PI / 2,
+ *    },
+ *  };
+ *
+ *  GLBModel.init(config);
  */
 class GLBModel {
   static init(config) {
@@ -55,7 +55,7 @@ class GLBModel {
     };
     this.modelPath = config.modelPath;
     this.enabledShadow = config.enabledShadow || false;
-    this.shadowAngle = config.shadowAngle || { x: 0, y: 1, z: 0 }; // default light shining from top
+    this.shadowAngle = config.shadowAngle || { x: 0, y: 1, z: 0 };
 
     this.initLoadingScreen(config.loadingScreenId);
     this.initScene();
@@ -79,7 +79,11 @@ class GLBModel {
       0.1,
       1000,
     );
-    this.camera.position.set(this.cameraPosition.x, this.cameraPosition.y, this.cameraPosition.z);
+    this.camera.position.set(
+      this.cameraPosition.x,
+      this.cameraPosition.y,
+      this.cameraPosition.z,
+    );
 
     this.renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
     this.renderer.setSize(window.innerWidth, window.innerHeight);
@@ -97,7 +101,6 @@ class GLBModel {
     if (this.enableControls) {
       this.controls = new THREE.OrbitControls(this.camera, this.renderer.domElement);
       Object.assign(this.controls, this.controlsConfig);
-
       this.controls.enablePan = this.controlsConfig.enablePan;
       this.controls.enableZoom = this.controlsConfig.enableZoom;
     }
@@ -106,16 +109,19 @@ class GLBModel {
     this.scene.add(ambientLight);
 
     const directionalLight1 = new THREE.DirectionalLight(0xffffff, this.lightIntensity);
-    directionalLight1.position.set(1, 1, 1); // light shining from right top
+    directionalLight1.position.set(1, 1, 1);
     this.scene.add(directionalLight1);
 
     const directionalLight2 = new THREE.DirectionalLight(0xffffff, this.lightIntensity);
-    directionalLight2.position.set(-1, -1, -1); // light shining from behind
+    directionalLight2.position.set(-1, -1, -1);
     this.scene.add(directionalLight2);
 
     this.mainLight = new THREE.DirectionalLight(0xffffff, this.lightIntensity);
-    this.mainLight.position.set(this.shadowAngle.x, this.shadowAngle.y, this.shadowAngle.z);
-
+    this.mainLight.position.set(
+      this.shadowAngle.x,
+      this.shadowAngle.y,
+      this.shadowAngle.z,
+    );
     this.mainLight.castShadow = this.enabledShadow;
     this.scene.add(this.mainLight);
 
@@ -130,7 +136,7 @@ class GLBModel {
         this.scene.add(helper);
       }
 
-      const planeGeometry = new THREE.PlaneGeometry(50, 50); // 增大平面尺寸
+      const planeGeometry = new THREE.PlaneGeometry(50, 50);
       const planeMaterial = new THREE.ShadowMaterial({ opacity: 0.3 });
       this.shadowPlane = new THREE.Mesh(planeGeometry, planeMaterial);
       this.shadowPlane.rotation.x = -Math.PI / 2;
@@ -140,6 +146,8 @@ class GLBModel {
     }
 
     window.addEventListener('resize', this.onWindowResize.bind(this), false);
+    // reloj para animaciones
+    this.clock = new THREE.Clock();
   }
 
   static loadModel() {
@@ -173,6 +181,17 @@ class GLBModel {
         });
 
         this.scene.add(this.model);
+
+        // iniciar animaciones en bucle infinito
+        if (gltf.animations && gltf.animations.length) {
+          this.mixer = new THREE.AnimationMixer(this.model);
+          gltf.animations.forEach((clip) => {
+            const action = this.mixer.clipAction(clip);
+            action.setLoop(THREE.LoopRepeat, Infinity);
+            action.play();
+          });
+        }
+
         this.loadingScreen.style.display = 'none';
       },
       (xhr) => {
@@ -203,12 +222,15 @@ class GLBModel {
   static animate() {
     requestAnimationFrame(this.animate.bind(this));
 
+    const delta = this.clock.getDelta();
+    if (this.mixer) this.mixer.update(delta);
+
     if (this.enableControls) {
       this.controls.update();
     }
 
-    if (this.autoRotate && this.scene.children.length > 0) {
-      this.scene.rotation.y += this.rotationSpeed;
+    if (this.autoRotate) {
+      this.model.rotation.y += this.rotationSpeed;
     }
 
     this.renderer.render(this.scene, this.camera);
