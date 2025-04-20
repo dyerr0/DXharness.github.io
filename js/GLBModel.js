@@ -2,38 +2,34 @@
  * GLBModel
  * @autor: funnyzak
  * @email: silenceace@gmail.com
- * @Usage:
- *  <div id="loading-screen">
- *    <h3 id="loading-text">Loading...</h3>
- *    <div id="progress-bar"><div id="progress"></div></div>
- *  </div>
- *  <div id="container"></div>
  *
- *  const config = {
- *    containerId: 'container',
- *    loadingScreenId: 'loading-screen',
- *    // ahora puede ser un solo path o un array de paths:
- *    modelPath: 'assets/carro.glb',
- *    modelPaths: ['assets/carro.glb', 'assets/llantas.glb'],
- *    autoRotate: true,
- *    rotationSpeed: 0.002,
- *    cameraPosition: { x: 0, y: 0, z: 3 },
- *    modelRotation: { x: 0, y: 0, z: 0 },
- *    lightIntensity: 0.8,
- *    ambientLightIntensity: 0.7,
- *    controls: {
- *      enableDamping: true,
- *      dampingFactor: 0.05,
- *      screenSpacePanning: false,
- *      minDistance: 1,
- *      maxDistance: 10,
- *      maxPolarAngle: Math.PI / 2,
- *    },
- *    enabledShadow: false,
- *    shadowAngle: { x: 0, y: 1, z: 0 },
- *  };
+ * Soporta uno o varios modelos superpuestos, manteniendo la escala y posición relativa.
  *
- *  GLBModel.init(config);
+ * Usage:
+ *   const config = {
+ *     containerId: 'container',
+ *     loadingScreenId: 'loading-screen',
+ *     // Puede ser un string único o un array de rutas:
+ *     modelPath: 'assets/carro.glb',
+ *     modelPaths: ['assets/carro.glb', 'assets/llantas.glb'],
+ *     autoRotate: true,
+ *     rotationSpeed: 0.002,
+ *     cameraPosition: { x: 0, y: 0, z: 3 },
+ *     modelRotation: { x: 0, y: 0, z: 0 },
+ *     lightIntensity: 0.8,
+ *     ambientLightIntensity: 0.7,
+ *     controls: {
+ *       enableDamping: true,
+ *       dampingFactor: 0.05,
+ *       screenSpacePanning: false,
+ *       minDistance: 1,
+ *       maxDistance: 10,
+ *       maxPolarAngle: Math.PI / 2,
+ *     },
+ *     enabledShadow: false,
+ *     shadowAngle: { x: 0, y: 1, z: 0 },
+ *   };
+ *   GLBModel.init(config);
  */
 class GLBModel {
   static init(config) {
@@ -57,7 +53,7 @@ class GLBModel {
       enableZoom: true,
       ...config.controls,
     };
-    // soporta uno o varios modelos superpuestos
+    // Acepta uno o varios modelos
     this.modelPaths = Array.isArray(config.modelPaths)
       ? config.modelPaths
       : [config.modelPath];
@@ -69,15 +65,13 @@ class GLBModel {
 
     this.clock = new THREE.Clock();
     this.mixers = [];
-    this._globalScale = null;
-    this._globalOffset = null;
 
     this.loadModels();
     this.animate();
   }
 
-  static initLoadingScreen(loadingScreenId) {
-    this.loadingScreen = document.getElementById(loadingScreenId);
+  static initLoadingScreen(id) {
+    this.loadingScreen = document.getElementById(id);
     this.progressBar = this.loadingScreen.querySelector('#progress-bar');
     this.progressElement = this.loadingScreen.querySelector('#progress');
     this.loadingText = this.loadingScreen.querySelector('#loading-text');
@@ -85,6 +79,7 @@ class GLBModel {
 
   static initScene() {
     this.scene = new THREE.Scene();
+
     this.camera = new THREE.PerspectiveCamera(
       75,
       window.innerWidth / window.innerHeight,
@@ -119,30 +114,18 @@ class GLBModel {
       this.controls.enableZoom = this.controlsConfig.enableZoom;
     }
 
-    const ambientLight = new THREE.AmbientLight(
-      0xffffff,
-      this.ambientLightIntensity
-    );
-    this.scene.add(ambientLight);
+    const ambient = new THREE.AmbientLight(0xffffff, this.ambientLightIntensity);
+    this.scene.add(ambient);
 
-    const directionalLight1 = new THREE.DirectionalLight(
-      0xffffff,
-      this.lightIntensity
-    );
-    directionalLight1.position.set(1, 1, 1);
-    this.scene.add(directionalLight1);
+    const dir1 = new THREE.DirectionalLight(0xffffff, this.lightIntensity);
+    dir1.position.set(1, 1, 1);
+    this.scene.add(dir1);
 
-    const directionalLight2 = new THREE.DirectionalLight(
-      0xffffff,
-      this.lightIntensity
-    );
-    directionalLight2.position.set(-1, -1, -1);
-    this.scene.add(directionalLight2);
+    const dir2 = new THREE.DirectionalLight(0xffffff, this.lightIntensity);
+    dir2.position.set(-1, -1, -1);
+    this.scene.add(dir2);
 
-    this.mainLight = new THREE.DirectionalLight(
-      0xffffff,
-      this.lightIntensity
-    );
+    this.mainLight = new THREE.DirectionalLight(0xffffff, this.lightIntensity);
     this.mainLight.position.set(
       this.shadowAngle.x,
       this.shadowAngle.y,
@@ -160,9 +143,9 @@ class GLBModel {
         const helper = new THREE.DirectionalLightHelper(this.mainLight, 5);
         this.scene.add(helper);
       }
-      const planeGeometry = new THREE.PlaneGeometry(50, 50);
-      const planeMaterial = new THREE.ShadowMaterial({ opacity: 0.3 });
-      this.shadowPlane = new THREE.Mesh(planeGeometry, planeMaterial);
+      const planeGeo = new THREE.PlaneGeometry(50, 50);
+      const planeMat = new THREE.ShadowMaterial({ opacity: 0.3 });
+      this.shadowPlane = new THREE.Mesh(planeGeo, planeMat);
       this.shadowPlane.rotation.x = -Math.PI / 2;
       this.shadowPlane.position.y = -1;
       this.shadowPlane.receiveShadow = true;
@@ -178,87 +161,108 @@ class GLBModel {
 
   static loadModels() {
     const loader = new THREE.GLTFLoader();
-    const total = this.modelPaths.length;
+    const paths = this.modelPaths;
+    const total = paths.length;
     let loaded = 0;
     const startTime = Date.now();
-    let simulatedProgress = 0;
+    let simulated = 0;
 
-    this.modelPaths.forEach((path, index) => {
-      loader.load(
-        path,
-        (gltf) => {
-          const model = gltf.scene;
+    const updateProgress = () => {
+      const pct = Math.round((loaded / total) * 100);
+      this.progressElement.style.width = pct + '%';
+      this.loadingText.textContent =
+        pct >= 100 ? 'Finalizing...' : 'Loading ' + pct + '%';
+      if (loaded === total) this.loadingScreen.style.display = 'none';
+    };
 
-          // para el primer modelo, calculamos escala y offset global
-          if (index === 0) {
-            // aplicamos rotación base
-            model.rotation.set(
-              this.modelRotation.x,
-              this.modelRotation.y,
-              this.modelRotation.z
-            );
-            // bounding-box para escala uniforme
-            const box = new THREE.Box3().setFromObject(model);
-            const center = box.getCenter(new THREE.Vector3());
-            const size = box.getSize(new THREE.Vector3());
-            const maxDim = Math.max(size.x, size.y, size.z);
-            const scale = 2 / maxDim;
-            this._globalScale = scale;
-            this._globalOffset = center.multiplyScalar(scale);
+    // Primero cargo el modelo base
+    loader.load(
+      paths[0],
+      (gltf) => {
+        const model = gltf.scene;
 
-            model.scale.setScalar(scale);
-            model.position.sub(this._globalOffset);
-          } else {
-            // para modelos adicionales, aplicamos misma escala y offset
-            model.scale.setScalar(this._globalScale);
-            model.position.sub(this._globalOffset);
+        // giro base
+        model.rotation.set(
+          this.modelRotation.x,
+          this.modelRotation.y,
+          this.modelRotation.z
+        );
+        // bbox para escala y offset
+        const box = new THREE.Box3().setFromObject(model);
+        const center = box.getCenter(new THREE.Vector3());
+        const size = box.getSize(new THREE.Vector3());
+        const maxDim = Math.max(size.x, size.y, size.z);
+        const scale = 2 / maxDim;
+        this._globalScale = scale;
+        this._globalOffset = center.multiplyScalar(scale);
+
+        model.scale.setScalar(scale);
+        model.position.sub(this._globalOffset);
+
+        model.traverse((n) => {
+          if (n.isMesh) {
+            n.castShadow = this.enabledShadow;
+            n.receiveShadow = this.enabledShadow;
           }
+        });
 
-          model.traverse((node) => {
-            if (node.isMesh) {
-              node.castShadow = this.enabledShadow;
-              node.receiveShadow = this.enabledShadow;
-            }
+        this.scene.add(model);
+
+        if (gltf.animations?.length) {
+          const mixer = new THREE.AnimationMixer(model);
+          this.mixers.push(mixer);
+          gltf.animations.forEach((clip) => {
+            const action = mixer.clipAction(clip);
+            action.setLoop(THREE.LoopRepeat, Infinity).play();
           });
-
-          this.scene.add(model);
-
-          // animaciones
-          if (gltf.animations && gltf.animations.length) {
-            const mixer = new THREE.AnimationMixer(model);
-            this.mixers.push(mixer);
-            gltf.animations.forEach((clip) => {
-              const action = mixer.clipAction(clip);
-              action.setLoop(THREE.LoopRepeat, Infinity);
-              action.play();
-            });
-          }
-
-          // progreso
-          loaded++;
-          let pct;
-          if (loaded === total) {
-            pct = 100;
-          } else if (gltf.total) {
-            pct = Math.round((loaded / total) * 100);
-          } else {
-            const elapsed = Date.now() - startTime;
-            simulatedProgress = Math.min((elapsed / 25000) * 100, 97);
-            pct = Math.round((loaded / total) * 100 * (simulatedProgress / 100));
-          }
-          this.progressElement.style.width = pct + '%';
-          this.loadingText.textContent =
-            pct >= 100 ? 'Finalizing...' : 'Loading ' + pct + '%';
-          if (loaded === total) {
-            this.loadingScreen.style.display = 'none';
-          }
-        },
-        undefined,
-        (error) => {
-          console.error('An error happened loading', path, error);
         }
-      );
-    });
+
+        loaded++;
+        updateProgress();
+
+        // luego cargo los demás modelos, aplicando misma escala y offset
+        for (let i = 1; i < paths.length; i++) {
+          loader.load(
+            paths[i],
+            (g2) => {
+              const m2 = g2.scene;
+              m2.rotation.set(
+                this.modelRotation.x,
+                this.modelRotation.y,
+                this.modelRotation.z
+              );
+              m2.scale.setScalar(this._globalScale);
+              m2.position.sub(this._globalOffset);
+
+              m2.traverse((n) => {
+                if (n.isMesh) {
+                  n.castShadow = this.enabledShadow;
+                  n.receiveShadow = this.enabledShadow;
+                }
+              });
+
+              this.scene.add(m2);
+
+              if (g2.animations?.length) {
+                const mix2 = new THREE.AnimationMixer(m2);
+                this.mixers.push(mix2);
+                g2.animations.forEach((clip) => {
+                  const act = mix2.clipAction(clip);
+                  act.setLoop(THREE.LoopRepeat, Infinity).play();
+                });
+              }
+
+              loaded++;
+              updateProgress();
+            },
+            undefined,
+            (err) => console.error('Error loading', paths[i], err)
+          );
+        }
+      },
+      undefined,
+      (err) => console.error('Error loading', paths[0], err)
+    );
   }
 
   static onWindowResize() {
@@ -273,17 +277,10 @@ class GLBModel {
     const delta = this.clock.getDelta();
     this.mixers.forEach((m) => m.update(delta));
 
-    if (this.enableControls) {
-      this.controls.update();
-    }
-
-    if (this.autoRotate && this._globalScale !== null) {
-      // rotamos el primer modelo; los demás ya están superpuestos
-      this.scene.children.forEach((obj) => {
-        if (obj.type === 'Group' || obj.isObject3D) {
-          obj.rotation.y += this.rotationSpeed;
-        }
-      });
+    if (this.enableControls) this.controls.update();
+    if (this.autoRotate) {
+      // rota todo el scene group
+      this.scene.rotation.y += this.rotationSpeed;
     }
 
     this.renderer.render(this.scene, this.camera);
