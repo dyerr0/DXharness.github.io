@@ -20,14 +20,14 @@
     <div id="earth-container"></div>
     <script>
       const config = {
-        containerId: 'earth-container',
+        containerId: 'container',
         loadingScreenId: 'loading-screen',
-        modelPath: 'assets/carro.glb',
+        modelPaths: ['assets/carro.glb', 'assets/llantas.glb'],
         autoRotate: true,
         rotationSpeed: 0.002,
         cameraPosition: { x: 0, y: 0, z: 3 },
-        lightIntensity: 0.8,
-        ambientLightIntensity: 0.7,
+        lightIntensity: 1,
+        ambientLightIntensity: 1.2,
         enabledShadow: false,
         controls: {
           enableDamping: true,
