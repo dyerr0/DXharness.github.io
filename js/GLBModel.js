@@ -9,20 +9,27 @@
  *  </div>
  *  <div id="container"></div>
  *
-const config = {
-  containerId: 'earth-container',
-  loadingScreenId: 'loading-screen',
-  modelPaths: ['assets/carro.glb','assets/llantas.glb'],
-  autoRotate: true,
-  rotationSpeed: 0.002,
-  cameraPosition: { x: 0, y: 0, z: 3 },
-  lightIntensity: 0.8,
-  ambientLightIntensity: 0.7,
-  enabledShadow: false,
-  controls: { /* ... */ },
-};
-GLBModel.init(config);
-
+ *  const config = {
+ *    containerId: 'container',
+ *    loadingScreenId: 'loading-screen',
+ *    modelPath: '../../assets/models/glb/gold_coin.glb',
+ *    autoRotate: true,
+ *    rotationSpeed: 0.002,
+ *    cameraPosition: { x: 0, y: 0, z: 3 },
+ *    modelRotation: { x: 0, y: 0, z: 0 },
+ *    lightIntensity: 0.8,
+ *    ambientLightIntensity: 0.7,
+ *    controls: {
+ *      enableDamping: true,
+ *      dampingFactor: 0.05,
+ *      screenSpacePanning: false,
+ *      minDistance: 1,
+ *      maxDistance: 10,
+ *      maxPolarAngle: Math.PI / 2,
+ *    },
+ *  };
+ *
+ *  GLBModel.init(config);
  */
 class GLBModel {
   static init(config) {
