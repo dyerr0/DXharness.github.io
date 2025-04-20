@@ -22,10 +22,22 @@
       const config = {
         containerId: 'container',
         loadingScreenId: 'loading-screen',
-        modelPaths: ['assets/carro.glb', 'assets/llantas.glb'],
+        // Modelos base: carro y llantas
+        modelPaths: [
+          'assets/carro.glb',
+          'assets/llantas.glb'
+        ],
+        // Tecla "1" para alternar luz_off / luz_on
+        keyModels: {
+          'Digit1': {
+            off: 'assets/luz_off.glb',
+            on:  'assets/luz_on.glb'
+          }
+        },
         autoRotate: true,
         rotationSpeed: 0.002,
         cameraPosition: { x: 0, y: 0, z: 3 },
+        modelRotation: { x: 0, y: 0, z: 0 },
         lightIntensity: 1,
         ambientLightIntensity: 1.2,
         enabledShadow: false,
@@ -37,12 +49,13 @@
           maxDistance: 10,
           maxPolarAngle: Math.PI / 2,
         },
+        shadowAngle: { x: 0, y: 1, z: 0 },
       };
 
       GLBModel.init(config);
     </script>
     <div class="footer">
-SWS - CONTEC TAB 2025
+      SWS - CONTEC TAB 2025
     </div>
     <script>
       window.dataLayer = window.dataLayer || [];
@@ -50,7 +63,6 @@ SWS - CONTEC TAB 2025
         dataLayer.push(arguments);
       }
       gtag('js', new Date());
-
       gtag('config', 'G-NCG2P0Q11R');
     </script>
   </body>
