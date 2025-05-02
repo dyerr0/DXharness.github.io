@@ -30,6 +30,7 @@
         keyModels: {
           'Digit1': { off: 'assets/luz_off.glb',         on: 'assets/luz_on.glb' },
           'Digit2': { off: 'assets/parabrisas_off.glb',  on: 'assets/parabrisas_on.glb' },
+          'Digit3': { off: 'assets/ventanas_off.glb',  on: 'assets/ventanas_on.glb' },
           'Digit4': { off: 'assets/bolsa_off.glb',          on: 'assets/bolsa_on.glb' },
           'Digit5': { off: 'assets/radio_off.glb',       on: 'assets/radio_on.glb' }
         },
@@ -59,6 +60,7 @@
         Digit5: new Audio('assets/radio.mp3')
       };
       // Loop infinito
+      audioMap.Digit4.loop = true;
       audioMap.Digit5.loop = true;
 
       window.addEventListener('keydown', (e) => {
