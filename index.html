@@ -63,18 +63,34 @@
       audioMap.Digit4.loop = true;
       audioMap.Digit5.loop = true;
 
+
       window.addEventListener('keydown', (e) => {
-        const sound = audioMap[e.code];
-        if (sound && sound.paused) {
-          sound.play();
+        if (e.code === 'Digit4') {
+          // AC ON → detenemos el sonido
+          const ac = audioMap.Digit4;
+          if (!ac.paused) {
+            ac.pause();
+            ac.currentTime = 0;
+          }
+        } else if (e.code === 'Digit5') {
+          // Radio ON → arrancamos
+          const radio = audioMap.Digit5;
+          if (radio.paused) radio.play();
         }
       });
 
       window.addEventListener('keyup', (e) => {
-        const sound = audioMap[e.code];
-        if (sound && !sound.paused) {
-          sound.pause();
-          sound.currentTime = 0;
+        if (e.code === 'Digit4') {
+          // AC OFF → reproducimos
+          const ac = audioMap.Digit4;
+          if (ac.paused) ac.play();
+        } else if (e.code === 'Digit5') {
+          // Radio OFF → detenemos
+          const radio = audioMap.Digit5;
+          if (!radio.paused) {
+            radio.pause();
+            radio.currentTime = 0;
+          }
         }
       });
     </script>
